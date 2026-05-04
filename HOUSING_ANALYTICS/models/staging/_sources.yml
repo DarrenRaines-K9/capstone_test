@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: raw
+    database: HOUSING_ANALYTICS
+    schema: RAW
+    freshness:
+      warn_after: {count: 35, period: day}
+      error_after: {count: 60, period: day}
+    loaded_at_field: LOADED_AT
+
+    tables:
+      - name: FRED_CPI_RAW
+        description: National rent CPI from FRED (series CUSR0000SEHA). Monthly index values.
+
+      - name: FRED_PERMITS_RAW
+        description: Nashville metro housing permits from FRED (series NASH947BPPRIVSA). Seasonally adjusted monthly counts.
+
+      - name: ZILLOW_ZORI_RAW
+        description: Zillow Observed Rent Index — observed asking rents by Nashville ZIP code. Monthly.
+
+      - name: CENSUS_BPS_RAW
+        description: Census Building Permits Survey — Davidson County single-family vs. multifamily permit counts. Monthly.
+
+      - name: BLS_LAUS_RAW
+        description: BLS Local Area Unemployment Statistics — Davidson County unemployment rate, labor force, and employment level. Monthly.
+
+      - name: ACS_ESTIMATES_RAW
+        description: Census ACS 5-Year estimates — Davidson County median income, median rent, rent burden. Annual.
+        freshness:
+          warn_after: {count: 400, period: day}
+          error_after: {count: 550, period: day}
+
+      - name: REDFIN_RAW
+        description: Redfin metro-level housing market data — sale price, inventory, days on market. Monthly.
