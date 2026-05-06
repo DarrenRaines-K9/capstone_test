@@ -1,0 +1,131 @@
+version: 2
+
+models:
+  - name: mart_monthly_housing_metrics
+    description: >
+      Master monthly time series spine. One row per calendar month from 2015-01-01.
+      Columns span four geographic levels — national, Nashville Metro, Davidson County,
+      and ZIP-aggregate — and must never be compared directly across levels.
+    columns:
+      - name: observation_date
+        description: First day of the calendar month.
+        tests: [not_null, unique]
+      - name: national_cpi_index
+        description: FRED rent CPI index (CUSR0000SEHA). Benchmark only — not comparable to local metrics.
+      - name: metro_permit_count
+        description: Nashville metro housing permits (FRED NASH947BPPRIVSA). Seasonally adjusted.
+      - name: metro_median_sale_price
+        description: Redfin median sale price, Nashville Metro, all residential.
+      - name: metro_median_list_price
+        description: Redfin median list price, Nashville Metro, all residential.
+      - name: metro_homes_sold
+        description: Redfin homes sold count, Nashville Metro.
+      - name: metro_inventory
+        description: Redfin active inventory, Nashville Metro.
+      - name: metro_median_days_on_market
+        description: Redfin median days on market, Nashville Metro.
+      - name: metro_avg_sale_to_list_ratio
+        description: Redfin average sale-to-list price ratio, Nashville Metro.
+      - name: county_unemployment_rate
+        description: BLS LAUS unemployment rate, Davidson County. Not seasonally adjusted.
+      - name: county_unemployment_count
+        description: BLS LAUS unemployed persons count, Davidson County.
+      - name: county_labor_force_count
+        description: BLS LAUS total labor force, Davidson County.
+      - name: county_median_household_income
+        description: ACS 5-Year median household income, Davidson County. Annual — forward-filled to monthly.
+      - name: county_median_gross_rent
+        description: ACS 5-Year median gross rent, Davidson County. Annual — forward-filled to monthly.
+      - name: county_gross_rent_pct_of_income
+        description: ACS 5-Year gross rent as % of income, Davidson County. Annual — forward-filled to monthly.
+      - name: county_acs_is_forward_filled
+        description: >
+          True for Feb–Dec rows where ACS annual value was carried forward from January.
+          NULL for months after the latest available ACS survey year (ACS has a ~2-year publication lag).
+      - name: zip_median_asking_rent_usd
+        description: Median Zillow ZORI asking rent across all Nashville ZIP codes. Normalized to month-start date.
+      - name: zip_count
+        description: Number of Nashville ZIP codes contributing to the ZORI median in that month.
+
+  - name: mart_rent_burden
+    description: >
+      Monthly rent burden at Davidson County level. Measures asking-rent affordability
+      using Zillow ZORI (market rate) against ACS median household income (forward-filled annual).
+      One row per month, limited to months where both Zillow and ACS data are available.
+    columns:
+      - name: observation_date
+        description: First day of the calendar month.
+        tests: [not_null, unique]
+      - name: zip_median_asking_rent_usd
+        description: Median asking rent across Nashville ZIP codes (Zillow ZORI).
+        tests: [not_null]
+      - name: county_median_household_income
+        description: ACS 5-Year median household income, Davidson County. Forward-filled from annual to monthly.
+        tests: [not_null]
+      - name: income_is_forward_filled
+        description: True for Feb–Dec rows where ACS income was carried forward from January.
+        tests: [not_null]
+      - name: rent_burden_pct
+        description: Annualized asking rent as % of median household income. Formula — (asking_rent * 12) / income * 100.
+        tests: [not_null]
+      - name: is_above_30_pct_threshold
+        description: True when rent_burden_pct exceeds 30% — the standard housing affordability threshold.
+        tests: [not_null]
+
+  - name: mart_supply_demand
+    description: >
+      Monthly supply and demand signals at Nashville Metro / Davidson County level.
+      Includes 3-month trailing growth rates and lagged versions for lead/lag correlation analysis.
+      One row per month for months with any of permit, employment, or rent data.
+    columns:
+      - name: observation_date
+        description: First day of the calendar month.
+        tests: [not_null, unique]
+      - name: metro_permit_count
+        description: Nashville metro housing permits (FRED). Seasonally adjusted monthly count.
+      - name: county_unemployment_rate
+        description: BLS LAUS unemployment rate, Davidson County.
+      - name: county_labor_force_count
+        description: BLS LAUS total labor force, Davidson County.
+      - name: zip_median_asking_rent_usd
+        description: Median asking rent across Nashville ZIP codes (Zillow ZORI).
+      - name: rent_growth_3m_pct
+        description: 3-month trailing rent growth — (current - 3m_ago) / 3m_ago * 100.
+      - name: labor_force_growth_3m_pct
+        description: 3-month trailing labor force growth — (current - 3m_ago) / 3m_ago * 100.
+      - name: permit_growth_3m_pct
+        description: 3-month trailing permit growth — (current - 3m_ago) / 3m_ago * 100.
+      - name: rent_growth_lag_3m
+        description: rent_growth_3m_pct lagged 3 months. Use to test whether past rent growth predicts current conditions.
+      - name: employment_growth_lag_3m
+        description: labor_force_growth_3m_pct lagged 3 months.
+      - name: permit_growth_lag_3m
+        description: permit_growth_3m_pct lagged 3 months. Use to test whether supply response leads rent changes.
+
+  - name: mart_affordability_index
+    description: >
+      Composite monthly affordability score for Davidson County / Nashville Metro, normalized 0–100
+      where higher = less affordable. Derived from rent burden (50%), CPI growth (25%),
+      income growth (15%), and supply response rate (10%). Min-max normalized within the dataset.
+    columns:
+      - name: observation_date
+        description: First day of the calendar month.
+        tests: [not_null, unique]
+      - name: rent_burden_pct
+        description: Annualized asking rent as % of median household income. Primary affordability signal.
+        tests: [not_null]
+      - name: cpi_yoy_growth_pct
+        description: National CPI year-over-year growth rate. Inflation benchmark component.
+      - name: income_growth_yoy_pct
+        description: ACS median household income year-over-year growth. Forward-filled annual — inverted in score.
+      - name: supply_response_rate
+        description: Metro permit count per 1,000 labor force. Higher = more supply relative to demand. Inverted in score.
+      - name: income_is_forward_filled
+        description: True for Feb–Dec rows where ACS income was carried forward from January.
+        tests: [not_null]
+      - name: affordability_index
+        description: >
+          Weighted composite score 0–100. Higher = less affordable.
+          Weights — rent_burden 50%, cpi_growth 25%, income_growth 15%, supply_response 10%.
+          Min-max normalized across all months in the dataset.
+        tests: [not_null]

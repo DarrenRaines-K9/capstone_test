@@ -41,6 +41,7 @@ def upsert_dataframe(
     df = df.copy().reset_index(drop=True)
     df.columns = df.columns.str.upper()
     upsert_keys = [k.upper() for k in upsert_keys]
+    df = df.drop_duplicates(subset=upsert_keys, keep="last")
     staging = f"{table.upper()}_STAGING"
 
     db = SNOWFLAKE_DATABASE

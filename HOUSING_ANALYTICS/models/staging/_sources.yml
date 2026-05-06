@@ -19,9 +19,6 @@ sources:
       - name: ZILLOW_ZORI_RAW
         description: Zillow Observed Rent Index — observed asking rents by Nashville ZIP code. Monthly.
 
-      - name: CENSUS_BPS_RAW
-        description: Census Building Permits Survey — Davidson County single-family vs. multifamily permit counts. Monthly.
-
       - name: BLS_LAUS_RAW
         description: BLS Local Area Unemployment Statistics — Davidson County unemployment rate, labor force, and employment level. Monthly.
 

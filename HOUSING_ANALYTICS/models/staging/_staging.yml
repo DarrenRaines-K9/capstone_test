@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: stg_fred_cpi
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: series_id
+        tests: [not_null]
+      - name: cpi_index
+        tests: [not_null]
+      - name: geography
+        tests: [not_null]
+
+  - name: stg_fred_permits
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: series_id
+        tests: [not_null]
+      - name: permit_count
+        tests: [not_null]
+      - name: geography
+        tests: [not_null]
+
+  - name: stg_zillow_zori
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: region_id
+        tests: [not_null]
+      - name: zip_code
+        tests: [not_null]
+      - name: asking_rent_usd
+        tests: [not_null]
+
+  - name: stg_bls_laus
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: series_id
+        tests: [not_null]
+      - name: metric_name
+        tests:
+          - not_null
+          - accepted_values:
+              values: [unemployment_rate, unemployment_count, labor_force]
+      - name: metric_value
+        description: Nullable — BLS occasionally omits values for a period.
+
+  - name: stg_acs_estimates
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: survey_year
+        tests: [not_null]
+      - name: geography
+        tests: [not_null]
+      - name: variable_code
+        tests:
+          - not_null
+          - accepted_values:
+              values: [B19013_001E, B25064_001E, B25070_001E]
+      - name: metric_name
+        tests:
+          - not_null
+          - accepted_values:
+              values: [median_household_income, median_gross_rent, gross_rent_pct_of_income]
+      - name: metric_value
+        tests: [not_null]
+
+  - name: stg_redfin
+    columns:
+      - name: observation_date
+        tests: [not_null]
+      - name: region_id
+        tests: [not_null]
+      - name: metric_name
+        tests:
+          - not_null
+          - accepted_values:
+              values: [median_sale_price, median_list_price, homes_sold, inventory, median_dom, avg_sale_to_list]
+      - name: metric_value
+        tests: [not_null]

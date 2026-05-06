@@ -26,7 +26,7 @@ dbt Marts  (joins, aggregations, affordability index)
 Streamlit Dashboard / FastAPI
 ```
 
-**Stack:** Python 3.12 · uv · httpx · pandas · pydantic · Snowflake · dbt-snowflake · Apache Airflow 2.9 · Streamlit · Docker
+**Stack:** Python 3.12 · uv · httpx · pandas · pydantic · Snowflake · dbt-snowflake · Apache Airflow 3.2.1 · Streamlit · Plotly · Docker
 
 ---
 
@@ -85,6 +85,13 @@ docker compose up -d
 # Airflow UI → http://localhost:8080
 ```
 
+**5. Run the Streamlit dashboard**
+
+```bash
+uv run streamlit run dashboard/app.py
+# Dashboard → http://localhost:8501
+```
+
 ---
 
 ## Environment Variables
@@ -111,7 +118,7 @@ docker compose up -d
 ```
 capstone_test/
 ├── main.py                          # CLI entry point
-├── Dockerfile                       # Extends airflow:2.9.0
+├── Dockerfile                       # Extends airflow:3.2.1-python3.12
 ├── docker-compose.yml               # Airflow + Postgres
 ├── pyproject.toml                   # uv config, ruff linting rules
 ├── .env.example                     # Committed env template
@@ -143,9 +150,13 @@ capstone_test/
 │   │
 │   └── api/                         # Stretch: FastAPI endpoints (not yet implemented)
 │
-├── dags/                            # Airflow DAGs (housing_pipeline.py — not yet written)
-├── dashboard/                       # Streamlit app (app.py — not yet written)
-├── dbt/                             # dbt project (not yet initialized)
+├── .streamlit/
+│   └── config.toml                  # Dark mode theme (navy bg, purple accent #7c6af7)
+├── dags/
+│   └── housing_pipeline.py          # Airflow DAG — monthly schedule, TaskFlow API
+├── dashboard/
+│   └── app.py                       # Streamlit dashboard — 5 pages, Plotly dark charts
+├── HOUSING_ANALYTICS/               # dbt project (staging + marts complete, 45 tests passing)
 ├── tests/
 │   ├── unit/
 │   └── integration/
@@ -182,15 +193,15 @@ All extractors return a Snowflake-ready DataFrame with base columns: `source`, `
 
 ---
 
-## Current Status (Phase 6 of 12)
+## Current Status (Phase 10 of 12 complete)
 
 | Phase | Description | Status |
 |---|---|---|
 | 1–6 | Core layer, extractors, pipeline orchestrators, Docker | Complete |
-| 7 | dbt project: staging + mart models | Not started |
-| 8 | Airflow DAG (`dags/housing_pipeline.py`) | Not started |
-| 9 | Snowflake provisioning & dbt profiles | Not started |
-| 10 | Streamlit dashboard (`dashboard/app.py`) | Not started |
+| 7 | dbt project: 6 staging models + 4 mart models, 45 tests | Complete |
+| 8 | Airflow DAG (`dags/housing_pipeline.py`) | Complete |
+| 9 | Docker + Airflow 3.2.1 running, DAG verified end-to-end | Complete |
+| 10 | Streamlit dashboard — 5 pages, dark mode, Plotly charts | Complete |
 | 11 | Unit & integration tests | Not started |
 | 12 | FastAPI stretch goal | Not started |
 
