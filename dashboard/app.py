@@ -1,12 +1,14 @@
 import os
 
+import httpx
 import pandas as pd
 import plotly.graph_objects as go
-import snowflake.connector
 import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
+
+API_BASE = os.getenv("API_BASE_URL")
 
 # ── Plotly dark theme matching Streamlit dark background ─────────────────────
 _BG = "#0e1117"
@@ -36,62 +38,39 @@ def _fig(**kwargs) -> go.Figure:
     return go.Figure(layout=go.Layout(**layout))
 
 
-# ── Snowflake ────────────────────────────────────────────────────────────────
-def _conn() -> snowflake.connector.SnowflakeConnection:
-    return snowflake.connector.connect(
-        account=os.environ["SNOWFLAKE_ACCOUNT"],
-        user=os.environ["SNOWFLAKE_USER"],
-        password=os.environ["SNOWFLAKE_PASSWORD"],
-        database=os.environ.get("SNOWFLAKE_DATABASE", "HOUSING_ANALYTICS"),
-        warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE", "HOUSING_ANALYTICS_WH"),
-        role=os.environ["SNOWFLAKE_ROLE"],
-    )
-
-
+# ── Data loading via FastAPI ──────────────────────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner="Loading housing metrics…")
 def load_monthly_metrics() -> pd.DataFrame:
-    with _conn() as conn:
-        df = pd.read_sql(
-            "SELECT * FROM MARTS.MART_MONTHLY_HOUSING_METRICS ORDER BY OBSERVATION_DATE",
-            conn,
-        )
-    df.columns = df.columns.str.lower()
+    resp = httpx.get(f"{API_BASE}/api/v1/metrics")
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json())
     df["observation_date"] = pd.to_datetime(df["observation_date"])
     return df
 
 
 @st.cache_data(ttl=3600, show_spinner="Loading rent burden…")
 def load_rent_burden() -> pd.DataFrame:
-    with _conn() as conn:
-        df = pd.read_sql(
-            "SELECT * FROM MARTS.MART_RENT_BURDEN ORDER BY OBSERVATION_DATE",
-            conn,
-        )
-    df.columns = df.columns.str.lower()
+    resp = httpx.get(f"{API_BASE}/api/v1/rent-burden")
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json())
     df["observation_date"] = pd.to_datetime(df["observation_date"])
     return df
 
 
 @st.cache_data(ttl=3600, show_spinner="Loading supply/demand…")
 def load_supply_demand() -> pd.DataFrame:
-    with _conn() as conn:
-        df = pd.read_sql(
-            "SELECT * FROM MARTS.MART_SUPPLY_DEMAND ORDER BY OBSERVATION_DATE",
-            conn,
-        )
-    df.columns = df.columns.str.lower()
+    resp = httpx.get(f"{API_BASE}/api/v1/supply-demand")
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json())
     df["observation_date"] = pd.to_datetime(df["observation_date"])
     return df
 
 
 @st.cache_data(ttl=3600, show_spinner="Loading affordability index…")
 def load_affordability() -> pd.DataFrame:
-    with _conn() as conn:
-        df = pd.read_sql(
-            "SELECT * FROM MARTS.MART_AFFORDABILITY_INDEX ORDER BY OBSERVATION_DATE",
-            conn,
-        )
-    df.columns = df.columns.str.lower()
+    resp = httpx.get(f"{API_BASE}/api/v1/affordability")
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json())
     df["observation_date"] = pd.to_datetime(df["observation_date"])
     return df
 

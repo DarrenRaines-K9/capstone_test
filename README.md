@@ -92,6 +92,13 @@ uv run streamlit run dashboard/app.py
 # Dashboard → http://localhost:8501
 ```
 
+**6. Run the FastAPI server (stretch goal)**
+
+```bash
+fastapi dev src/capstone_test/api/main.py
+# API → http://localhost:8000 | Swagger UI → http://localhost:8000/docs
+```
+
 ---
 
 ## Environment Variables
@@ -148,7 +155,18 @@ capstone_test/
 │   │   ├── dbt_runner.py           # run(step) → subprocess dbt command
 │   │   └── runner.py               # Coordinates all stages
 │   │
-│   └── api/                         # Stretch: FastAPI endpoints (not yet implemented)
+│   └── api/                         # FastAPI serving layer
+│       ├── main.py                 # App entry point — lifespan, 5 routers registered
+│       ├── deps.py                 # get_db() dependency wrapping get_connection()
+│       ├── queries.py              # SQL functions returning typed Pydantic instances
+│       ├── routers/                # One router per endpoint
+│       │   ├── metrics.py         # GET /api/v1/metrics
+│       │   ├── rent_burden.py     # GET /api/v1/rent-burden
+│       │   ├── supply_demand.py   # GET /api/v1/supply-demand
+│       │   ├── affordability.py   # GET /api/v1/affordability
+│       │   └── summary.py         # GET /api/v1/summary
+│       └── schemas/
+│           └── responses.py       # Pydantic response models (one per mart)
 │
 ├── .streamlit/
 │   └── config.toml                  # Dark mode theme (navy bg, purple accent #7c6af7)
@@ -162,7 +180,9 @@ capstone_test/
 │   └── integration/
 └── docs/
     ├── plan.md                      # Full project blueprint & design decisions
-    └── task.md                      # 12-phase task checklist with done conditions
+    ├── task.md                      # 12-phase task checklist with done conditions
+    ├── fastapi_plan.md              # FastAPI implementation plan (Phase 12)
+    └── grain_document.md            # Mart grain definitions and ACS forward-fill rules
 ```
 
 ---
@@ -193,7 +213,7 @@ All extractors return a Snowflake-ready DataFrame with base columns: `source`, `
 
 ---
 
-## Current Status (Phase 10 of 12 complete)
+## Current Status (Phase 12 in progress)
 
 | Phase | Description | Status |
 |---|---|---|
@@ -203,6 +223,6 @@ All extractors return a Snowflake-ready DataFrame with base columns: `source`, `
 | 9 | Docker + Airflow 3.2.1 running, DAG verified end-to-end | Complete |
 | 10 | Streamlit dashboard — 5 pages, dark mode, Plotly charts | Complete |
 | 11 | Unit & integration tests | Not started |
-| 12 | FastAPI stretch goal | Not started |
+| 12 | FastAPI — 5 endpoints built; Streamlit migrated to API; verification pending | Nearly complete |
 
 See [docs/task.md](docs/task.md) for the full checklist and [docs/plan.md](docs/plan.md) for the project blueprint.

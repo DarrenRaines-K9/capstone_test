@@ -1,0 +1,22 @@
+name: FastAPI Smoke Test
+on: [push, pull_request]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - name: Start API
+        run: uv run uvicorn capstone_test.api.main:app --host 0.0.0.0 --port 8000 &
+        env:
+          SNOWFLAKE_ACCOUNT: ci-placeholder
+          SNOWFLAKE_USER: ci-placeholder
+          SNOWFLAKE_PASSWORD: ci-placeholder
+          SNOWFLAKE_ROLE: ci-placeholder
+          PYTHONPATH: src
+      - name: Wait for startup
+        run: sleep 5
+      - name: Verify /docs responds
+        run: curl --fail --silent http://localhost:8000/docs
