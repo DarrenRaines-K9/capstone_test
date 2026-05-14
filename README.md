@@ -228,3 +228,8 @@ All extractors return a Snowflake-ready DataFrame with base columns: `source`, `
 See [docs/task.md](docs/task.md) for the full checklist and [docs/plan.md](docs/plan.md) for the project blueprint.
 
 <!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
+<!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
+<!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
+<!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
+<!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
+<!-- MY CHANGE HERE IT SHOULD TRIGGER OUR GITHUB ACTIONS -->
